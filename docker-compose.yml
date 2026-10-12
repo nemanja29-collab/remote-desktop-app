@@ -1,0 +1,30 @@
+services:
+  remote-support:
+    build: .
+    container_name: remote-support
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    # Uncomment za direktni HTTPS unutar containera:
+    # volumes:
+    #   - /etc/letsencrypt:/etc/letsencrypt:ro
+    # environment:
+    #   - CERT_PATH=/etc/letsencrypt/live/podrska.vasafirma.com/fullchain.pem
+    #   - KEY_PATH=/etc/letsencrypt/live/podrska.vasafirma.com/privkey.pem
+
+  # Nginx reverse proxy za HTTPS (preporučeno)
+  nginx:
+    image: nginx:alpine
+    container_name: remote-support-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - remote-support
